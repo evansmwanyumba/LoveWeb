@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eternal Romance & Proposal Studio 💖</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      .font-romantic {
+        font-family: "Dancing Script", cursive;
+      }
+      .font-serif-title {
+        font-family: "Playfair Display", serif;
+      }
+      .font-sans-main {
+        font-family: "Plus Jakarta Sans", sans-serif;
+      }
+
+      /* Animated Card Background Container Themes */
+      .theme-velvet {
+        background: linear-gradient(
+          135deg,
+          #4a0404 0%,
+          #881337 50%,
+          #2e0209 100%
+        );
+        border: 1px solid rgba(244, 63, 94, 0.3);
+      }
+      .theme-cyber {
+        background: linear-gradient(
+          135deg,
+          #09090b 0%,
+          #1e1b4b 50%,
+          #311042 100%
+        );
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        box-shadow: 0 0 25px rgba(168, 85, 247, 0.2);
+      }
+      .theme-starlight {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        border: 1px solid rgba(253, 224, 71, 0.3);
+        box-shadow: 0 0 25px rgba(253, 224, 71, 0.15);
+      }
+      .theme-gradient {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradientBG 12s ease infinite;
+      }
+      .theme-glass {
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .theme-pastel {
+        background: linear-gradient(
+          135deg,
+          #fce7f3 0%,
+          #fbcfe8 50%,
+          #f472b6 100%
+        );
+        color: #831843;
+      }
+
+      @keyframes gradientBG {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* 3D Tilt Card Container */
+      .card-3d-wrap {
+        perspective: 1000px;
+        transform-style: preserve-3d;
+      }
+      .card-3d-body {
+        transition: transform 0.1s ease-out;
+        transform-style: preserve-3d;
+      }
+
+      /* Envelope animation */
+      .envelope-flap {
+        clip-path: polygon(0 0, 50% 50%, 100% 0);
+        transform-origin: top;
+        transition: transform 0.6s ease-in-out;
+      }
+      .envelope-open .envelope-flap {
+        transform: rotateX(180deg);
+      }
+    </style>
+  </head>
+  <body
+    class="font-sans-main h-full overflow-x-hidden relative selection:bg-rose-500 selection:text-white"
+  >
+    <!-- Background Canvas -->
+    <div id="bg-container" class="fixed inset-0 z-0 pointer-events-none"></div>
+
+    <!-- Main Navigation -->
+    <nav
+      class="relative z-20 flex justify-between items-center px-6 py-4 backdrop-blur-md bg-slate-950/40 border-b border-rose-900/20"
+    >
+      <div
+        class="flex items-center gap-2 cursor-pointer"
+        onclick="showView('creator')"
+      >
+        <span class="text-3xl">💖</span>
+        <span class="font-romantic text-2xl text-rose-400 font-bold"
+          >Eternal Love Studio</span
+        >
+      </div>
+
+      <div id="auth-buttons" class="flex items-center gap-3">
+        <!-- Injected dynamically -->
+      </div>
+    </nav>
+
+    <!-- Notification Toast -->
+    <div
+      id="toast"
+      class="fixed top-20 right-5 z-50 transform translate-x-72 transition-transform duration-300 bg-rose-900/90 border border-rose-500 text-rose-100 px-5 py-3 rounded-xl shadow-2xl backdrop-blur-md text-sm font-semibold flex items-center gap-2"
+    >
+      <span id="toast-icon">✨</span>
+      <span id="toast-msg">Notification</span>
+    </div>
+
+    <!-- VIEWER MODE (For lovers opening shared link) -->
+    <main
+      id="view-mode"
+      class="hidden relative z-10 min-h-[calc(100vh-80px)] flex flex-col items-center justify-center p-4"
+    >
+      <div class="card-3d-wrap w-full max-w-xl">
+        <!-- Envelope Interactive Wrapper -->
+        <div
+          id="envelope"
+          class="relative bg-rose-950/80 border border-rose-500/30 rounded-2xl p-8 text-center shadow-2xl cursor-pointer hover:scale-105 transition-all duration-300 group"
+        >
+          <div class="text-6xl mb-4 animate-bounce">💌</div>
+          <h2 class="font-serif-title text-2xl text-rose-200 mb-2">
+            A Secret Love Message For You
+          </h2>
+          <p class="text-slate-400 text-sm">Click to unseal with love...</p>
+          <div
+            class="mt-6 inline-block bg-rose-600 group-hover:bg-rose-500 text-white text-sm px-6 py-2 rounded-full font-semibold shadow-lg shadow-rose-600/30"
+          >
+            Open Sealed Message 🕯️
+          </div>
+        </div>
+
+        <!-- Love Card Main Content -->
+        <div
+          id="card-content"
+          class="hidden card-3d-body p-8 md:p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden transition-all duration-500"
+        >
+          <!-- User Image -->
+          <div id="v-image-container" class="hidden mb-6 flex justify-center">
+            <img
+              id="v-image"
+              class="w-36 h-36 object-cover rounded-full border-4 border-rose-400/50 shadow-xl ring-4 ring-rose-500/20"
+              src=""
+              alt="Lover Photo"
+            />
+          </div>
+
+          <span
+            id="v-badge"
+            class="inline-block px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-widest bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-4"
+          >
+            Romantic Message
+          </span>
+
+          <h1
+            class="font-serif-title text-3xl md:text-4xl font-bold mb-2 text-white"
+            id="v-names"
+          >
+            Name & Name
+          </h1>
+
+          <p id="v-date" class="text-xs text-rose-300/80 mb-6 font-mono"></p>
+
+          <!-- Dynamic Message Text -->
+          <div
+            id="v-message"
+            class="font-romantic text-2xl md:text-3xl leading-relaxed my-6 px-4 text-slate-100"
+          ></div>
+
+          <!-- Proposal Specific Section -->
+          <div
+            id="v-proposal-box"
+            class="hidden mt-8 pt-6 border-t border-white/10"
+          >
+            <h2
+              id="v-proposal-question"
+              class="font-serif-title text-2xl md:text-3xl text-rose-300 mb-6 font-bold"
+            >
+              Will You Marry Me? 💍
+            </h2>
+
+            <div
+              id="proposal-buttons"
+              class="relative min-h-[100px] flex items-center justify-center gap-6"
+            >
+              <button
+                onclick="handleProposalYes()"
+                class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg shadow-emerald-500/40 transform hover:scale-110 transition-all"
+              >
+                YES! 💖
+              </button>
+              <button
+                id="no-btn"
+                onmouseover="fleeNoButton()"
+                onclick="fleeNoButton()"
+                class="absolute bg-rose-600/80 hover:bg-rose-600 text-white font-bold text-sm px-6 py-3 rounded-full transition-all duration-150"
+              >
+                NO 🙈
+              </button>
+            </div>
+          </div>
+
+          <!-- Touch My Heart Interactive Button -->
+          <div
+            class="mt-8 pt-4 border-t border-white/10 flex justify-between items-center text-xs text-slate-400"
+          >
+            <button
+              onclick="triggerLoveShower()"
+              class="flex items-center gap-2 bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 px-4 py-2 rounded-full border border-rose-500/30 transition-all"
+            >
+              <span>Shower Love</span> 💖
+            </button>
+            <span id="love-meter" class="font-mono text-rose-400"
+              >Love Level: 100% 🔥</span
+            >
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- CREATOR STUDIO MODE -->
+    <main id="creator-mode" class="relative z-10 max-w-6xl mx-auto px-4 py-8">
+      <div class="text-center mb-10">
+        <h1
+          class="font-serif-title text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 via-pink-300 to-amber-200"
+        >
+          Craft Magical Romantic Experiences
+        </h1>
+        <p class="text-slate-400 mt-2 text-sm md:text-base">
+          Build customized love notes or 3D interactive proposals with real-time
+          effects.
+        </p>
+      </div>
+
+      <!-- Mode Toggle (Card vs Proposal) -->
+      <div class="flex justify-center mb-8">
+        <div
+          class="bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 flex gap-2"
+        >
+          <button
+            id="mode-btn-card"
+            onclick="setMode('card')"
+            class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all bg-rose-600 text-white shadow-lg"
+          >
+            💌 Romantic Note
+          </button>
+          <button
+            id="mode-btn-proposal"
+            onclick="setMode('proposal')"
+            class="px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white"
+          >
+            💍 3D Proposal
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Creator Form Options -->
+        <div
+          class="lg:col-span-6 bg-slate-900/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-slate-800 space-y-6"
+        >
+          <!-- Webpage Canvas BG Switcher -->
+          <div>
+            <label
+              class="block text-xs font-semibold text-rose-300 uppercase tracking-wider mb-2"
+              >Webpage Background</label
+            >
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onclick="changeBg('dark')"
+                class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold hover:border-rose-500 flex flex-col items-center gap-1"
+              >
+                <span>🌌</span> Dark Cosmic
+              </button>
+              <button
+                type="button"
+                onclick="changeBg('emojis')"
+                class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold hover:border-rose-500 flex flex-col items-center gap-1"
+              >
+                <span>😍</span> 3D Emojis
+              </button>
+              <button
+                type="button"
+                onclick="changeBg('garden')"
+                class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold hover:border-rose-500 flex flex-col items-center gap-1"
+              >
+                <span>🌹</span> Rose Garden
+              </button>
+            </div>
+          </div>
+
+          <!-- Names & Date -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1"
+                >Your Name</label
+              >
+              <input
+                type="text"
+                id="in-sender"
+                oninput="updatePreview()"
+                placeholder="e.g. Romeo"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1"
+                >Partner's Name</label
+              >
+              <input
+                type="text"
+                id="in-partner"
+                oninput="updatePreview()"
+                placeholder="e.g. Juliet"
+                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1"
+              >Special Date (Optional)</label
+            >
+            <input
+              type="date"
+              id="in-date"
+              onchange="updatePreview()"
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+            />
+          </div>
+
+          <!-- Image Upload -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1"
+              >Couple Photo</label
+            >
+            <input
+              type="file"
+              id="in-image"
+              accept="image/*"
+              onchange="handleImageUpload(event)"
+              class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-500/20 file:text-rose-300 hover:file:bg-rose-500/30"
+            />
+          </div>
+
+          <!-- Card Container Style Picker -->
+          <div>
+            <label
+              class="block text-xs font-semibold text-rose-300 uppercase tracking-wider mb-2"
+              >Message Container Theme</label
+            >
+            <div class="grid grid-cols-3 gap-2 text-xs">
+              <button
+                onclick="setContainerStyle('velvet')"
+                class="p-2.5 rounded-xl border border-rose-900 bg-rose-950 hover:border-rose-400"
+              >
+                Velvet Rose
+              </button>
+              <button
+                onclick="setContainerStyle('cyber')"
+                class="p-2.5 rounded-xl border border-purple-900 bg-purple-950 hover:border-purple-400"
+              >
+                Cyber Glow
+              </button>
+              <button
+                onclick="setContainerStyle('starlight')"
+                class="p-2.5 rounded-xl border border-amber-900 bg-slate-900 hover:border-amber-400"
+              >
+                Starlight
+              </button>
+              <button
+                onclick="setContainerStyle('gradient')"
+                class="p-2.5 rounded-xl border border-pink-500 bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+              >
+                Gradient
+              </button>
+              <button
+                onclick="setContainerStyle('glass')"
+                class="p-2.5 rounded-xl border border-white/20 bg-white/10 backdrop-blur"
+              >
+                Glassmorphism
+              </button>
+              <button
+                onclick="setContainerStyle('pastel')"
+                class="p-2.5 rounded-xl border border-pink-300 bg-pink-200 text-pink-900"
+              >
+                Soft Pastel
+              </button>
+            </div>
+          </div>
+
+          <!-- Proposal Question Input -->
+          <div id="proposal-input-box" class="hidden">
+            <label class="block text-xs font-semibold text-amber-300 mb-1"
+              >Custom Proposal Question</label
+            >
+            <input
+              type="text"
+              id="in-proposal"
+              oninput="updatePreview()"
+              value="Will You Marry Me & Be Mine Forever? 💍"
+              class="w-full bg-slate-950 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-amber-200 focus:outline-none focus:border-amber-400"
+            />
+          </div>
+
+          <!-- Message Body & Presets -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-300"
+                >Romantic Message</label
+              >
+              <button
+                onclick="applyPreset()"
+                class="text-xs text-rose-400 hover:underline flex items-center gap-1"
+              >
+                <span>🪄</span> Insert Cute Preset
+              </button>
+            </div>
+            <textarea
+              id="in-message"
+              rows="4"
+              oninput="updatePreview()"
+              placeholder="Write your heartfelt note..."
+              class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-rose-500"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            onclick="generateLink()"
+            class="w-full py-3.5 bg-gradient-to-r from-rose-600 via-pink-600 to-rose-500 hover:from-rose-500 hover:to-pink-500 text-white font-bold rounded-xl shadow-lg shadow-rose-600/30 transition-all transform hover:scale-[1.01]"
+          >
+            Generate Shareable Romance Link 🔗
+          </button>
+        </div>
+
+        <!-- Live Interactive Preview Window -->
+        <div class="lg:col-span-6 flex flex-col justify-center items-center">
+          <span
+            class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3"
+            >Live Interactive Preview</span
+          >
+          <div id="preview-wrapper" class="w-full max-w-md">
+            <!-- Dynamically populated via updatePreview() -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Share Link Dialog Modal -->
+    <div
+      id="share-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+    >
+      <div
+        class="bg-slate-900 border border-rose-500/30 p-8 rounded-3xl max-w-md w-full text-center shadow-2xl relative"
+      >
+        <div class="text-5xl mb-4">🎉</div>
+        <h3 class="font-serif-title text-2xl font-bold text-white mb-2">
+          Your Romantic Link is Ready!
+        </h3>
+        <p class="text-xs text-slate-400 mb-6">
+          Send this custom link to your lover. When opened, it will reveal your
+          animated 3D card.
+        </p>
+
+        <div
+          class="flex items-center gap-2 bg-slate-950 border border-slate-800 p-2.5 rounded-xl mb-6"
+        >
+          <input
+            id="share-url-input"
+            type="text"
+            readonly
+            class="bg-transparent text-xs text-rose-300 w-full focus:outline-none font-mono"
+          />
+          <button
+            onclick="copyShareUrl()"
+            class="bg-rose-600 hover:bg-rose-500 text-white text-xs px-4 py-2 rounded-lg font-semibold shrink-0"
+          >
+            Copy
+          </button>
+        </div>
+
+        <div class="flex gap-3">
+          <button
+            onclick="openShareUrl()"
+            class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs py-2.5 rounded-xl font-semibold"
+          >
+            Test Preview 👁️
+          </button>
+          <button
+            onclick="closeShareModal()"
+            class="flex-1 bg-rose-600 hover:bg-rose-500 text-white text-xs py-2.5 rounded-xl font-semibold"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div
+      id="auth-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+    >
+      <div
+        class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl relative"
+      >
+        <button
+          onclick="closeAuthModal()"
+          class="absolute top-4 right-4 text-slate-500 hover:text-white"
+        >
+          ✕
+        </button>
+
+        <div class="text-4xl mb-3">🗝️</div>
+        <h3
+          id="auth-title"
+          class="font-serif-title text-2xl font-bold text-white mb-6"
+        >
+          Welcome Back
+        </h3>
+
+        <form
+          id="auth-form"
+          onsubmit="handleAuthSubmit(event)"
+          class="space-y-4"
+        >
+          <input
+            id="auth-username"
+            type="text"
+            placeholder="Username"
+            required
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+          />
+          <input
+            id="auth-password"
+            type="password"
+            placeholder="Password"
+            required
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+          />
+
+          <button
+            type="submit"
+            id="auth-submit-btn"
+            class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl shadow-lg transition-all text-sm"
+          >
+            Log In
+          </button>
+        </form>
+
+        <p class="mt-6 text-xs text-slate-400">
+          <span id="auth-toggle-text">Don't have an account?</span>
+          <button
+            onclick="toggleAuthMode()"
+            id="auth-toggle-btn"
+            class="text-rose-400 font-semibold underline ml-1"
+          >
+            Sign Up
+          </button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Exit / Prompt Account Creation Modal for Readers -->
+    <div
+      id="exit-modal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+    >
+      <div
+        class="bg-slate-900 border border-rose-500/40 p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl"
+      >
+        <div class="text-5xl mb-3">💖</div>
+        <h3 class="font-serif-title text-2xl font-bold text-white mb-2">
+          Inspired by Love?
+        </h3>
+        <p class="text-xs text-slate-300 mb-6">
+          Create your own account to send romantic notes or cute proposals to
+          your partner!
+        </p>
+        <div class="space-y-3">
+          <button
+            onclick="openAuthModal('signup')"
+            class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-lg"
+          >
+            Create Account Now ✨
+          </button>
+          <button
+            onclick="closeExitModal()"
+            class="w-full py-2.5 bg-slate-800 text-slate-400 hover:text-white rounded-xl text-xs"
+          >
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Application Logic JavaScript -->
+    <script>
+      // Config: Point this to your Render FastAPI Service
+      const API_BASE = "https://your-render-app-name.onrender.com/api";
+
+      // App State
+      let currentUser = JSON.parse(localStorage.getItem("love_user") || "null");
+      let currentMode = "card"; // 'card' or 'proposal'
+      let currentContainerStyle = "velvet";
+      let currentBg = "dark";
+      let uploadedImageData = "";
+      let isAuthSignup = false;
+
+      // Preset Romantic Messages
+      const PRESETS = [
+        "Every single day with you feels like a beautiful dream I never want to wake up from. You have my whole heart forever.",
+        "You are my sun on rainy days, my calm in every storm, and my favorite place to be. I love you endlessly!",
+        "I never believed in soulmates until I met you. Thank you for making every second of life feel like a fairy tale.",
+      ];
+
+      // Initialize App
+      window.addEventListener("DOMContentLoaded", () => {
+        initThreeJS();
+        updateAuthUI();
+        checkURLRoute();
+      });
+
+      // Handle View Routing based on Query Params
+      async function checkURLRoute() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardId = urlParams.get("id");
+
+        if (cardId) {
+          try {
+            showToast("Loading romantic message...", "💌");
+            const response = await fetch(`${API_BASE}/cards/${cardId}`);
+            if (!response.ok) throw new Error("Card not found");
+            const data = await response.json();
+            renderViewerMode(data);
+          } catch (err) {
+            showToast("Card not found. Opening Creator.", "⚠️");
+            showView("creator");
+          }
+        } else {
+          showView("creator");
+        }
+      }
+
+      // Auth UI Handlers
+      function updateAuthUI() {
+        const container = document.getElementById("auth-buttons");
+        if (currentUser) {
+          container.innerHTML = `
+          <span class="text-xs text-rose-300 font-semibold">Hi, ${currentUser.username}</span>
+          <button onclick="logout()" class="text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300">
+            Logout
+          </button>
+        `;
+        } else {
+          container.innerHTML = `
+          <button onclick="openAuthModal('login')" class="text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded-lg font-semibold shadow-md">
+            Log In / Register
+          </button>
+        `;
+        }
+      }
+
+      function openAuthModal(type = "login") {
+        isAuthSignup = type === "signup";
+        document.getElementById("auth-title").innerText = isAuthSignup
+          ? "Create Account"
+          : "Welcome Back";
+        document.getElementById("auth-submit-btn").innerText = isAuthSignup
+          ? "Sign Up"
+          : "Log In";
+        document.getElementById("auth-toggle-text").innerText = isAuthSignup
+          ? "Already have an account?"
+          : "Don't have an account?";
+        document.getElementById("auth-toggle-btn").innerText = isAuthSignup
+          ? "Log In"
+          : "Sign Up";
+        document.getElementById("auth-modal").classList.remove("hidden");
+      }
+
+      function closeAuthModal() {
+        document.getElementById("auth-modal").classList.add("hidden");
+      }
+
+      function toggleAuthMode() {
+        openAuthModal(isAuthSignup ? "login" : "signup");
+      }
+
+      async function handleAuthSubmit(e) {
+        e.preventDefault();
+        const username = document.getElementById("auth-username").value;
+        const password = document.getElementById("auth-password").value;
+        const endpoint = isAuthSignup
+          ? `${API_BASE}/register`
+          : `${API_BASE}/login`;
+
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "Authentication failed");
+
+          currentUser = { username: data.username, token: data.access_token };
+          localStorage.setItem("love_user", JSON.stringify(currentUser));
+          updateAuthUI();
+          closeAuthModal();
+          showToast(
+            isAuthSignup
+              ? "Account created successfully! ✨"
+              : "Logged in successfully! 💖",
+            "🎉",
+          );
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+
+      function logout() {
+        currentUser = null;
+        localStorage.removeItem("love_user");
+        updateAuthUI();
+        showToast("Logged out.", "👋");
+      }
+
+      // Switch Application Views
+      function showView(view) {
+        if (view === "creator") {
+          document.getElementById("creator-mode").classList.remove("hidden");
+          document.getElementById("view-mode").classList.add("hidden");
+          updatePreview();
+        } else {
+          document.getElementById("creator-mode").classList.add("hidden");
+          document.getElementById("view-mode").classList.remove("hidden");
+        }
+      }
+
+      // Creator Form Functions
+      function setMode(mode) {
+        currentMode = mode;
+        document.getElementById("mode-btn-card").className =
+          mode === "card"
+            ? "px-6 py-2.5 rounded-xl text-sm font-semibold transition-all bg-rose-600 text-white shadow-lg"
+            : "px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white";
+
+        document.getElementById("mode-btn-proposal").className =
+          mode === "proposal"
+            ? "px-6 py-2.5 rounded-xl text-sm font-semibold transition-all bg-amber-500 text-white shadow-lg"
+            : "px-6 py-2.5 rounded-xl text-sm font-semibold transition-all text-slate-400 hover:text-white";
+
+        document
+          .getElementById("proposal-input-box")
+          .classList.toggle("hidden", mode !== "proposal");
+        updatePreview();
+      }
+
+      function setContainerStyle(style) {
+        currentContainerStyle = style;
+        updatePreview();
+      }
+
+      function applyPreset() {
+        const randomMsg = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+        document.getElementById("in-message").value = randomMsg;
+        updatePreview();
+      }
+
+      function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            uploadedImageData = event.target.result;
+            updatePreview();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function updatePreview() {
+        const sender = document.getElementById("in-sender").value || "Romeo";
+        const partner = document.getElementById("in-partner").value || "Juliet";
+        const date = document.getElementById("in-date").value;
+        const message =
+          document.getElementById("in-message").value ||
+          "Your romantic note will appear here...";
+        const proposal = document.getElementById("in-proposal").value;
+
+        const wrapper = document.getElementById("preview-wrapper");
+        wrapper.innerHTML = `
+        <div class="card-3d-body p-8 rounded-3xl text-center shadow-2xl theme-${currentContainerStyle}">
+          ${uploadedImageData ? `<img src="${uploadedImageData}" class="w-24 h-24 object-cover rounded-full mx-auto mb-4 border-2 border-white/40 shadow-md">` : ""}
+          <span class="inline-block px-3 py-1 rounded-full text-[10px] uppercase font-semibold tracking-wider bg-white/10 mb-3">
+            ${currentMode === "proposal" ? "💍 Proposal Mode" : "💌 Love Card"}
+          </span>
+          <h2 class="font-serif-title text-2xl font-bold text-white mb-1">${sender} & ${partner}</h2>
+          ${date ? `<p class="text-[10px] text-rose-200 mb-3 font-mono">${date}</p>` : ""}
+          <p class="font-romantic text-xl my-4 text-slate-100">${message}</p>
+          ${currentMode === "proposal" ? `<div class="mt-4 p-3 bg-white/10 rounded-xl font-serif-title font-bold text-amber-200 text-lg">${proposal}</div>` : ""}
+        </div>
+      `;
+      }
+
+      // API Submit and Link Generation
+      async function generateLink() {
+        const payload = {
+          type: currentMode,
+          sender_name:
+            document.getElementById("in-sender").value || "Someone Special",
+          partner_name:
+            document.getElementById("in-partner").value || "My Love",
+          message: document.getElementById("in-message").value || "I love you!",
+          proposal_question: document.getElementById("in-proposal").value,
+          theme: "classic",
+          bg_style: currentBg,
+          card_container_style: currentContainerStyle,
+          special_date: document.getElementById("in-date").value,
+          image_data: uploadedImageData,
+        };
+
+        try {
+          showToast("Generating secure love link...", "⏳");
+          const res = await fetch(`${API_BASE}/cards`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error("Failed to generate link");
+          const card = await res.json();
+
+          const shareUrl = `${window.location.origin}${window.location.pathname}?id=${card.id}`;
+          document.getElementById("share-url-input").value = shareUrl;
+          document.getElementById("share-modal").classList.remove("hidden");
+        } catch (err) {
+          showToast("Error connecting to server. Is FastAPI running?", "❌");
+        }
+      }
+
+      function closeShareModal() {
+        document.getElementById("share-modal").classList.add("hidden");
+      }
+      function copyShareUrl() {
+        const input = document.getElementById("share-url-input");
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showToast("Link copied to clipboard!", "📋");
+      }
+      function openShareUrl() {
+        window.open(document.getElementById("share-url-input").value, "_blank");
+      }
+
+      // Render Viewer Card Mode
+      function renderViewerMode(data) {
+        showView("viewer");
+        changeBg(data.bg_style || "dark");
+
+        const cardBody = document.getElementById("card-content");
+        cardBody.className = `hidden card-3d-body p-8 md:p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden theme-${data.card_container_style || "velvet"}`;
+
+        document.getElementById("v-names").innerText =
+          `${data.sender_name} & ${data.partner_name}`;
+        document.getElementById("v-message").innerText = data.message;
+        document.getElementById("v-date").innerText = data.special_date || "";
+
+        if (data.image_data) {
+          document.getElementById("v-image").src = data.image_data;
+          document
+            .getElementById("v-image-container")
+            .classList.remove("hidden");
+        }
+
+        if (data.type === "proposal") {
+          document.getElementById("v-proposal-box").classList.remove("hidden");
+          document.getElementById("v-proposal-question").innerText =
+            data.proposal_question || "Will You Marry Me?";
+        }
+
+        // Envelope click listener
+        document.getElementById("envelope").onclick = () => {
+          document.getElementById("envelope").classList.add("hidden");
+          cardBody.classList.remove("hidden");
+          triggerLoveShower();
+        };
+      }
+
+      // Interactive Viewer Buttons
+      function fleeNoButton() {
+        const btn = document.getElementById("no-btn");
+        const randomX = (Math.random() - 0.5) * 260;
+        const randomY = (Math.random() - 0.5) * 160;
+        btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+        showToast(
+          "Sorry, this option isn't available! Try another choice! 💍✨",
+          "🙈",
+        );
+      }
+
+      function handleProposalYes() {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+        showToast("SHE/HE SAID YES! 🎉💖 Best day ever!", "💍");
+      }
+
+      function triggerLoveShower() {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ["#f43f5e", "#ec4899", "#fda4af"],
+        });
+      }
+
+      function showToast(msg, icon = "✨") {
+        const toast = document.getElementById("toast");
+        document.getElementById("toast-msg").innerText = msg;
+        document.getElementById("toast-icon").innerText = icon;
+        toast.classList.remove("translate-x-72");
+        setTimeout(() => toast.classList.add("translate-x-72"), 3500);
+      }
+
+      // Exit Modal Prompt for Guests
+      window.addEventListener("beforeunload", (e) => {
+        if (
+          !currentUser &&
+          document.getElementById("view-mode").classList.contains("hidden") ===
+            false
+        ) {
+          document.getElementById("exit-modal").classList.remove("hidden");
+        }
+      });
+      function closeExitModal() {
+        document.getElementById("exit-modal").classList.add("hidden");
+      }
+
+      // Three.js Animated Backgrounds Engine
+      let scene, camera, renderer, animationFrameId, activeMeshGroup;
+
+      function initThreeJS() {
+        const container = document.getElementById("bg-container");
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000,
+        );
+        camera.position.z = 30;
+
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        activeMeshGroup = new THREE.Group();
+        scene.add(activeMeshGroup);
+
+        changeBg("dark");
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+
+      function changeBg(type) {
+        currentBg = type;
+        while (activeMeshGroup.children.length > 0) {
+          activeMeshGroup.remove(activeMeshGroup.children[0]);
+        }
+
+        if (type === "dark") {
+          const geometry = new THREE.BufferGeometry();
+          const count = 600;
+          const positions = new Float32Array(count * 3);
+          for (let i = 0; i < count * 3; i++)
+            positions[i] = (Math.random() - 0.5) * 100;
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3),
+          );
+          const material = new THREE.PointsMaterial({
+            size: 0.8,
+            color: 0xf43f5e,
+            transparent: true,
+            opacity: 0.6,
+          });
+          const stars = new THREE.Points(geometry, material);
+          activeMeshGroup.add(stars);
+        } else if (type === "emojis" || type === "garden") {
+          const count = 30;
+          const geometry = new THREE.PlaneGeometry(3, 3);
+          for (let i = 0; i < count; i++) {
+            const material = new THREE.MeshBasicMaterial({
+              color: type === "garden" ? 0xf43f5e : 0xfb7185,
+              transparent: true,
+              opacity: 0.7,
+              side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+              (Math.random() - 0.5) * 60,
+              (Math.random() - 0.5) * 60,
+              (Math.random() - 0.5) * 40,
+            );
+            mesh.rotation.z = Math.random() * Math.PI;
+            activeMeshGroup.add(mesh);
+          }
+        }
+
+        animateThreeJS();
+      }
+
+      function animateThreeJS() {
+        cancelAnimationFrame(animationFrameId);
+        const loop = () => {
+          animationFrameId = requestAnimationFrame(loop);
+          activeMeshGroup.rotation.y += 0.002;
+          activeMeshGroup.rotation.x += 0.001;
+          renderer.render(scene, camera);
+        };
+        loop();
+      }
+    </script>
+  </body>
+</html>
