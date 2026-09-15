@@ -527,6 +527,67 @@
       </div>
     </div>
 
+    <!-- Admin Dashboard -->
+    <div
+      id="admin-modal"
+      class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-md p-4"
+    >
+      <div
+        class="max-w-4xl mx-auto my-8 bg-slate-900 border border-rose-900/40 rounded-3xl p-6 shadow-2xl"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-rose-400">
+              Administration
+            </p>
+            <h2 class="font-serif-title text-3xl text-white">User Dashboard</h2>
+          </div>
+          <button
+            onclick="closeAdminDashboard()"
+            class="text-slate-500 hover:text-white text-xl"
+          >
+            ✕
+          </button>
+        </div>
+        <form
+          id="admin-password-form"
+          onsubmit="changeOwnAdminPassword(event)"
+          class="flex flex-col sm:flex-row gap-3 mb-6"
+        >
+          <input
+            id="admin-new-password"
+            type="password"
+            minlength="4"
+            required
+            placeholder="New admin password"
+            class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500"
+          />
+          <button
+            class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold"
+          >
+            Change Admin Password
+          </button>
+        </form>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead
+              class="text-xs uppercase tracking-wider text-slate-500 border-b border-slate-800"
+            >
+              <tr>
+                <th class="py-3">Username</th>
+                <th class="py-3">Role</th>
+                <th class="py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody
+              id="admin-users-list"
+              class="divide-y divide-slate-800"
+            ></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Auth Modal -->
     <div
       id="auth-modal"
@@ -628,7 +689,11 @@
     <!-- Application Logic JavaScript -->
     <script>
       // Config: Point this to your Render FastAPI Service
-      const API_BASE = "https://your-render-app-name.onrender.com/api";
+      const API_BASE = ["localhost", "127.0.0.1"].includes(
+        window.location.hostname,
+      )
+        ? "http://127.0.0.1:8000/api"
+        : "https://loveweb-backend.onrender.com/api";
 
       // App State
       let currentUser = JSON.parse(localStorage.getItem("love_user") || "null");
@@ -679,6 +744,7 @@
         if (currentUser) {
           container.innerHTML = `
           <span class="text-xs text-rose-300 font-semibold">Hi, ${currentUser.username}</span>
+          ${currentUser.is_admin ? '<button onclick="openAdminDashboard()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-semibold">Admin</button>' : ""}
           <button onclick="logout()" class="text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300">
             Logout
           </button>
@@ -734,7 +800,12 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.detail || "Authentication failed");
 
-          currentUser = { username: data.username, token: data.access_token };
+          currentUser = {
+            username: data.username,
+            token: data.access_token,
+            is_admin: data.is_admin,
+            id: data.id,
+          };
           localStorage.setItem("love_user", JSON.stringify(currentUser));
           updateAuthUI();
           closeAuthModal();
@@ -754,6 +825,77 @@
         localStorage.removeItem("love_user");
         updateAuthUI();
         showToast("Logged out.", "👋");
+      }
+
+      async function openAdminDashboard() {
+        if (!currentUser?.is_admin) return;
+        document.getElementById("admin-modal").classList.remove("hidden");
+        await loadAdminUsers();
+      }
+
+      function closeAdminDashboard() {
+        document.getElementById("admin-modal").classList.add("hidden");
+      }
+
+      async function loadAdminUsers() {
+        const response = await fetch(`${API_BASE}/admin/users`, {
+          headers: { Authorization: `Bearer ${currentUser.token}` },
+        });
+        if (!response.ok)
+          return alert(
+            (await response.json()).detail || "Unable to load users",
+          );
+        const users = await response.json();
+        document.getElementById("admin-users-list").innerHTML = users
+          .map(
+            (user) => `
+          <tr><td class="py-3 text-white font-semibold">${user.username}</td><td class="py-3 text-slate-400">${user.is_admin ? "Administrator" : "Member"}</td>
+          <td class="py-3 text-right space-x-2"><button onclick="resetUserPassword('${user.id}', '${user.username}')" class="text-xs text-amber-300 hover:text-amber-200">Reset password</button>
+          ${user.id !== currentUser.id ? `<button onclick="deleteUser('${user.id}', '${user.username}')" class="text-xs text-rose-400 hover:text-rose-300">Delete</button>` : ""}</td></tr>
+        `,
+          )
+          .join("");
+      }
+
+      async function resetUserPassword(userId, username) {
+        const password = prompt(`New password for ${username}:`);
+        if (!password) return;
+        await adminUserAction(
+          `${API_BASE}/admin/users/${userId}/password`,
+          "PATCH",
+          { password },
+        );
+      }
+
+      async function deleteUser(userId, username) {
+        if (!confirm(`Delete ${username}? This cannot be undone.`)) return;
+        await adminUserAction(`${API_BASE}/admin/users/${userId}`, "DELETE");
+      }
+
+      async function adminUserAction(url, method, body) {
+        const response = await fetch(url, {
+          method,
+          headers: {
+            Authorization: `Bearer ${currentUser.token}`,
+            ...(body ? { "Content-Type": "application/json" } : {}),
+          },
+          ...(body ? { body: JSON.stringify(body) } : {}),
+        });
+        const data = await response.json();
+        if (!response.ok) return alert(data.detail || "Admin action failed");
+        showToast(data.message, "✅");
+        await loadAdminUsers();
+      }
+
+      async function changeOwnAdminPassword(event) {
+        event.preventDefault();
+        const password = document.getElementById("admin-new-password").value;
+        await adminUserAction(
+          `${API_BASE}/admin/users/${currentUser.id}/password`,
+          "PATCH",
+          { password },
+        );
+        document.getElementById("admin-password-form").reset();
       }
 
       // Switch Application Views
