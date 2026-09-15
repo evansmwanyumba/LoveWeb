@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "https://loveweb-backend.onrender.com/"
+      "destination": "https://loveweb-backend.onrender.com/$1"
     }
   ]
 }
