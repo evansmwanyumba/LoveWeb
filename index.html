@@ -740,21 +740,8 @@
       // Auth UI Handlers
       function updateAuthUI() {
         const container = document.getElementById("auth-buttons");
-        if (currentUser) {
-          container.innerHTML = `
-          <span class="text-xs text-rose-300 font-semibold">Hi, ${currentUser.username}</span>
-          ${currentUser.is_admin ? '<button onclick="openAdminDashboard()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg font-semibold">Admin</button>' : ""}
-          <button onclick="logout()" class="text-xs bg-slate-900 border border-slate-800 hover:bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300">
-            Logout
-          </button>
-        `;
-        } else {
-          container.innerHTML = `
-          <button onclick="openAuthModal('login')" class="text-xs bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded-lg font-semibold shadow-md">
-            Log In / Register
-          </button>
-        `;
-        }
+        container.innerHTML =
+          '<span class="text-xs text-rose-300 font-semibold">Guest mode</span>';
       }
 
       function openAuthModal(type = "login") {
@@ -1085,16 +1072,7 @@
         setTimeout(() => toast.classList.add("translate-x-72"), 3500);
       }
 
-      // Exit Modal Prompt for Guests
-      window.addEventListener("beforeunload", (e) => {
-        if (
-          !currentUser &&
-          document.getElementById("view-mode").classList.contains("hidden") ===
-            false
-        ) {
-          document.getElementById("exit-modal").classList.remove("hidden");
-        }
-      });
+      // Guest mode does not require an account.
       function closeExitModal() {
         document.getElementById("exit-modal").classList.add("hidden");
       }
